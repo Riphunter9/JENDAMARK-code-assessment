@@ -1,0 +1,97 @@
+﻿@page "/"
+@using JENDAMARK_code_assessment.Data
+@using JENDAMARK_code_assessment.Services
+
+@inherits OwningComponentBase<OperationServices>
+<h3>Operations</h3>
+<!-- modal code-->
+@if (show)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog FadeIn">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ShowModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowModal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<!---->
+
+    @if (!operations.Any())
+    {
+        <button type="button" class="btn btn-primary" @onclick="ShowModal">Add Operation</button>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Order in which to perform</th>
+                    <th>Device</th>
+                    <th>Operation Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="font-weight-bold text-center text-black-50">No data..</td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary" @onclick="ShowModal">Save changes</button>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Order in which to perform</th>
+                    <th>Device</th>
+                    <th>Operation Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var model in operations)
+                {
+                    <tr>
+                        <td>@model.Name</td>
+                        <td>@model.OrderInWhichToPerform</td>
+                        <td>@model.DeviceID</td>
+                        <td>@model.ImageData</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+@code {
+    bool show = false;
+    List<Operations> operations;
+
+    protected override void OnInitialized()
+    {
+        operations = Service.GetOperations();
+    }
+
+    void ShowModal()
+    {
+        if (!show)
+        {
+            show = true;
+        }
+        else
+        {
+            show = false;
+        }
+    }
+}

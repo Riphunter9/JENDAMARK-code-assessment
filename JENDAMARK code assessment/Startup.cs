@@ -1,3 +1,4 @@
+
 using JENDAMARK_code_assessment.Data;
 using JENDAMARK_code_assessment.Services;
 using Microsoft.AspNetCore.Builder;
@@ -28,11 +29,13 @@ namespace JENDAMARK_code_assessment
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages().AddRazorRuntimeCompilation();
+            services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddDbContext<AppDbContext>(options =>
                                     options.UseSqlServer(Configuration.GetConnectionString("JENDAMARKConnection")));
             services.AddScoped<OperationServices>();
+        
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,7 +54,6 @@ namespace JENDAMARK_code_assessment
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-     
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>

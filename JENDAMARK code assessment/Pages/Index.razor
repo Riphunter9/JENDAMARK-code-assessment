@@ -1,10 +1,15 @@
 ﻿@page "/"
+
+@using Microsoft.AspNetCore.Hosting
+@inject IWebHostEnvironment Environment
+@using BlazorInputFile
 @using JENDAMARK_code_assessment.Data
 @using JENDAMARK_code_assessment.Services
 @using JENDAMARK_code_assessment.Pages
+@using System.IO
 
 @inherits OwningComponentBase<OperationServices>
-<h3>Operations</h3>
+<p style="font-size:50px" class="jumbotron align-content-center text-black-50 text-center text-capitalize">Operations</p>
 <!-- modal code-->
 @if (show)
 {
@@ -12,24 +17,25 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@(OperationsModel.OperationID > 0 ? "Update Operation": "Add Operation")</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ShowModal">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title">Add Operation</h5>
                 </div>
-                <EditForm Model="OperationsModel" OnValidSubmit="InsertOperation">
+                <EditForm Model="@OperationsModel" OnValidSubmit="@InsertOperation">
+                    <DataAnnotationsValidator />
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Name</label>
                             <input type="text" class="form-control" @bind="OperationsModel.Name">
+                            <ValidationMessage For="@(()=>OperationsModel.Name)"></ValidationMessage>
                         </div>
                         <div class="form-group">
                             <label>Operation order</label>
-                            <input type="number" class="form-control" min="0" @bind="OperationsModel.OrderInWhichToPerform" />
+                            <input type="number" class="form-control" @bind="OperationsModel.OrderInWhichToPerform" required />
+                            <ValidationMessage For="@(()=>OperationsModel.OrderInWhichToPerform)"></ValidationMessage>
                         </div>
                         <div class="input-group mb-3">
                             <label class="w-100">Device</label>
-                            <select class="form-control" @bind="OperationsModel.DeviceID">
+                            <select class="form-control" @bind="OperationsModel.DeviceID" >
+                                <option value="">-- Select Device --</option>
                                 @foreach (var dev in Devices)
                                 {
                                     if (@dev.DeviceID < 0)
@@ -38,7 +44,7 @@
                                     }
                                     else
                                     {
-                                        <option value="@dev.DeviceID">@dev.Name</option>
+                                        <option value="@dev.DeviceID" @key="@dev.DeviceID">@dev.Name</option>
                                     }
                                 }
                             </select>
@@ -46,16 +52,26 @@
                                 <button class="btn btn-secondary" type="button" @onclick="ShowDeviceModal">+</button>
                             </div>
                         </div>
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input">
-                            <label class="custom-file-label">Choose file</label>
+                        <ValidationMessage For="@(()=>OperationsModel.DeviceID)"></ValidationMessage>
+                        <div class="input-group">
+                            <div class="form-input">
+                                <InputFile id="Picture" accept=".jpg,.PNG,.JPEG" OnChange="OnFileChange"  class="w-100 custom-file-input" />
+                                <label class="custom-file-label"></label>
+                            </div>
+
+                            @if (isDone)
+                            {
+                                <label class="alert alert-success disabled w-100">@status<input type="text" value="@fileName" disabled style="width:100%;" /></label>
+                            }
                         </div>
+                        <ValidationMessage For="@(()=>OperationsModel.ImageData)"></ValidationMessage>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowModal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </EditForm>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowModal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                </div>
+
             </div>
         </div>
     </div>
@@ -67,15 +83,14 @@ else if (openDeviceModal)
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">@(OperationsModel.OperationID > 0 ? "Update Device": "Add Device")</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ShowDeviceModal">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
-                <EditForm Model="DeviceModel" OnValidSubmit="InsertOperation">
+                <EditForm Model="@DeviceModel" OnValidSubmit="@InsertDevice">
+                    <DataAnnotationsValidator />
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Name</label>
                             <input type="text" class="form-control" @bind="DeviceModel.Name">
+                            <ValidationMessage For="@(()=>DeviceModel.Name)"></ValidationMessage>
                         </div>
                         <div class="form-group">
                             <label>Device type</label>
@@ -87,12 +102,13 @@ else if (openDeviceModal)
                             </select>
                         </div>
                     </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary " @onclick="ShowModal">Back</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowDeviceModal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Device</button>
+                    </div>
                 </EditForm>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary " @onclick="ShowModal">Back</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowDeviceModal">Close</button>
-                    <button type="button" class="btn btn-primary" @onclick="InsertDevice">@(DeviceModel.DeviceID >0 ? "Update Device": "Add Device")</button>
-                </div>
+
             </div>
         </div>
     </div>
@@ -108,7 +124,7 @@ else if (openDeviceModal)
         <thead class="thead-light">
             <tr>
                 <th>Name</th>
-                <th>Order in which to perform</th>
+                <th>Operation Order</th>
                 <th>Device</th>
                 <th>Operation Image</th>
             </tr>
@@ -122,14 +138,19 @@ else if (openDeviceModal)
 }
 else
 {
-    <button type="button" class="btn btn-primary" @onclick="ShowModal">Save changes</button>
-    <table class="table">
-        <thead class="thead-dark">
+    <div class="pb-1">
+        <button type="button" class="btn btn-secondary" @onclick="ShowModal">Add Operation</button>
+        <button type="button" class="btn btn-primary" @onclick="ShowDeviceModal">Add Device</button>
+    </div>
+
+    <table class="table table-striped">
+        <thead class="thead-light">
             <tr>
                 <th>Name</th>
-                <th>Order in which to perform</th>
+                <th>Operation Order</th>
                 <th>Device</th>
                 <th>Operation Image</th>
+                <th colspan="2">Options</th>
             </tr>
         </thead>
         <tbody>
@@ -138,8 +159,9 @@ else
                 <tr>
                     <td>@model.Name</td>
                     <td>@model.OrderInWhichToPerform</td>
-                    <td>@model.DeviceID</td>
-                    <td>@model.ImageData</td>
+                    <td>@model.Device.Name</td>
+                    <td><img src="data:image/*;base64,@(Convert.ToBase64String(model.ImageData))" width="100px" height="100px" style="border-radius:3px" /></td>
+                    <td><button class="btn btn-danger" @onclick="@(()=>DeleteOperation(model))">Delete</button></td>
                 </tr>
             }
         </tbody>
@@ -148,13 +170,19 @@ else
 @code {
     #region Properties
     bool show = false;
+    bool isDone = false;
     bool openDeviceModal = false;
-    bool clickAdd = false;
+    public byte[] Image { get; set; }
+    string fileName;
+    string status;
     List<Operations> operations;
     List<Data.Device> Devices;
     List<KeyValuePair<int, string>> DeviceTypes;
+
     Operations OperationsModel = new Operations();
     Device DeviceModel = new Device();
+
+
     #endregion
 
     #region Modals
@@ -163,15 +191,18 @@ else
         if (!show)
         {
             show = true;
+
             if (show)
             {
+                Devices = Service.GetDevices();
+                //need to add code to rerender the list after creating a new device
                 openDeviceModal = false;
             }
         }
         else
         {
             show = false;
-           
+            isDone = false;
         }
     }
     void ShowDeviceModal()
@@ -202,21 +233,47 @@ else
     void InsertOperation()
     {
         OperationsModel.OperationID = 0;
+        OperationsModel.ImageData = Image;
         Service.InsertOperation(OperationsModel);
         operations = Service.GetOperations();
+        show = false;
+
+    }
+    void DeleteOperation(Operations model)
+    {
+        Service.DeleteOperation(model);
+        operations.Clear();
+        operations = Service.GetOperations();
+        StateHasChanged();
     }
     void InsertDevice()
     {
         DeviceModel.DeviceID = 0;
         Service.InsertDevices(DeviceModel);
-        Devices = Service.GetDevices();
-        show = true;
-
-        //Cloing device modal then clearing up the device model 
+        Service.GetDevices();
+        //Cloing device modal then clearing up the device model
         openDeviceModal = false;
         DeviceModel.DeviceID = 0;
-        DeviceModel.Name = "";
+      //  DeviceModel.Name = "";
         DeviceModel.DeviceType = 0;
     }
+    async Task OnFileChange(IFileListEntry[] files)
+    {
+
+        var file = files.FirstOrDefault();
+
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            fileName = file.Name;
+            await file.Data.CopyToAsync(ms);
+            Image = ms.ToArray();
+            status = $"Image loaded";
+            isDone = true;
+        }
+    }
+    
     #endregion
+
 }
+

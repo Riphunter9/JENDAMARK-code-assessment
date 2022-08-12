@@ -7,8 +7,10 @@ namespace JENDAMARK_code_assessment.Data
         [Key]
         public int DeviceID { get; set; }
         [Required]
+        [MinLength(5,ErrorMessage ="Enter atleast 5 letters")]
         public string Name { get; set; }
-        public int DeviceType { get; set; }
+        [Required]
+        public int? DeviceType { get; set; }
     }
 }
 

@@ -33,7 +33,6 @@ namespace JENDAMARK_code_assessment
             services.AddDbContext<AppDbContext>(options =>
                                     options.UseSqlServer(Configuration.GetConnectionString("JENDAMARKConnection")));
             services.AddScoped<OperationServices>();
-            services.AddScoped<DeviceServices>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using JENDAMARK_code_assessment.Data
 @using JENDAMARK_code_assessment.Services
+@using JENDAMARK_code_assessment.Pages
 
 @inherits OwningComponentBase<OperationServices>
 <h3>Operations</h3>
@@ -8,17 +9,49 @@
 @if (show)
 {
     <div class="modal" tabindex="-1" style="display:block">
-        <div class="modal-dialog FadeIn">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Modal title</h5>
+                    <h5 class="modal-title">@(OperationsModel.OperationID > 0 ? "Update Operation": "Add Operation")</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ShowModal">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p>Modal body text goes here.</p>
-                </div>
+                <EditForm Model="OperationsModel" OnValidSubmit="InsertOperation">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" @bind="OperationsModel.Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Operation order</label>
+                            <input type="number" class="form-control" min="0" @bind="OperationsModel.OrderInWhichToPerform" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <label class="w-100">Device</label>
+                            <select class="form-control" @bind="OperationsModel.DeviceID">
+                                @foreach (var dev in Devices)
+                                {
+                                    if (@dev.DeviceID < 0)
+                                    {
+                                        <option value="">--Add a device--</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@dev.DeviceID">@dev.Name</option>
+                                    }
+                                }
+                            </select>
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary" type="button" @onclick="ShowDeviceModal">+</button>
+                            </div>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input">
+                            <label class="custom-file-label">Choose file</label>
+                        </div>
+                    </div>
+                </EditForm>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowModal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
@@ -27,71 +60,163 @@
         </div>
     </div>
 }
+else if (openDeviceModal)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(OperationsModel.OperationID > 0 ? "Update Device": "Add Device")</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="ShowDeviceModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <EditForm Model="DeviceModel" OnValidSubmit="InsertOperation">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" @bind="DeviceModel.Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Device type</label>
+                            <select class="form-control" @bind="DeviceModel.DeviceType">
+                                @foreach (var p in DeviceTypes)
+                                {
+                                    <option value="@p.Key">@p.Value</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </EditForm>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary " @onclick="ShowModal">Back</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="ShowDeviceModal">Close</button>
+                    <button type="button" class="btn btn-primary" @onclick="InsertDevice">@(DeviceModel.DeviceID >0 ? "Update Device": "Add Device")</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 <!---->
-
-    @if (!operations.Any())
-    {
+@if (!operations.Any())
+{
+    <div>
         <button type="button" class="btn btn-primary" @onclick="ShowModal">Add Operation</button>
-        <table class="table">
-            <thead class="thead-dark">
+        <button type="button" class="btn btn-primary" @onclick="ShowDeviceModal">Add Device</button>
+    </div>
+    <table class="table">
+        <thead class="thead-light">
+            <tr>
+                <th>Name</th>
+                <th>Order in which to perform</th>
+                <th>Device</th>
+                <th>Operation Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="4" class="font-weight-bold text-center text-black-50">No data..</td>
+            </tr>
+        </tbody>
+    </table>
+}
+else
+{
+    <button type="button" class="btn btn-primary" @onclick="ShowModal">Save changes</button>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th>Name</th>
+                <th>Order in which to perform</th>
+                <th>Device</th>
+                <th>Operation Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var model in operations)
+            {
                 <tr>
-                    <th>Name</th>
-                    <th>Order in which to perform</th>
-                    <th>Device</th>
-                    <th>Operation Image</th>
+                    <td>@model.Name</td>
+                    <td>@model.OrderInWhichToPerform</td>
+                    <td>@model.DeviceID</td>
+                    <td>@model.ImageData</td>
                 </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="4" class="font-weight-bold text-center text-black-50">No data..</td>
-                </tr>
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <button type="button" class="btn btn-primary" @onclick="ShowModal">Save changes</button>
-        <table class="table">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Name</th>
-                    <th>Order in which to perform</th>
-                    <th>Device</th>
-                    <th>Operation Image</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var model in operations)
-                {
-                    <tr>
-                        <td>@model.Name</td>
-                        <td>@model.OrderInWhichToPerform</td>
-                        <td>@model.DeviceID</td>
-                        <td>@model.ImageData</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
+            }
+        </tbody>
+    </table>
+}
 @code {
+    #region Properties
     bool show = false;
+    bool openDeviceModal = false;
+    bool clickAdd = false;
     List<Operations> operations;
+    List<Data.Device> Devices;
+    List<KeyValuePair<int, string>> DeviceTypes;
+    Operations OperationsModel = new Operations();
+    Device DeviceModel = new Device();
+    #endregion
 
-    protected override void OnInitialized()
-    {
-        operations = Service.GetOperations();
-    }
-
+    #region Modals
     void ShowModal()
     {
         if (!show)
         {
             show = true;
+            if (show)
+            {
+                openDeviceModal = false;
+            }
         }
         else
         {
             show = false;
+           
         }
     }
+    void ShowDeviceModal()
+    {
+        if (!openDeviceModal)
+        {
+            show = false;
+            openDeviceModal = true;
+        }
+        else
+        {
+            openDeviceModal = false;
+            if (openDeviceModal)
+            {
+                show = false;
+            }
+        }
+    }
+    #endregion
+
+    #region Operations & Devices
+    protected override void OnInitialized()
+    {
+        Devices = Service.GetDevices();
+        DeviceTypes = Service.GetDeviceTypes();
+        operations = Service.GetOperations();
+    }
+    void InsertOperation()
+    {
+        OperationsModel.OperationID = 0;
+        Service.InsertOperation(OperationsModel);
+        operations = Service.GetOperations();
+    }
+    void InsertDevice()
+    {
+        DeviceModel.DeviceID = 0;
+        Service.InsertDevices(DeviceModel);
+        Devices = Service.GetDevices();
+        show = true;
+
+        //Cloing device modal then clearing up the device model 
+        openDeviceModal = false;
+        DeviceModel.DeviceID = 0;
+        DeviceModel.Name = "";
+        DeviceModel.DeviceType = 0;
+    }
+    #endregion
 }

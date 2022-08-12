@@ -1,14 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace JENDAMARK_code_assessment.Data
 {
    public enum DeviceType
     {
-        [Display(Name ="Barcode Scanner")]
+        [Description("Barcode Scanner")]
         BarcodeScanner,
         Printer,
         Camera,
-        [Display(Name = "Socket Tray")]
+        [Description("Socket Tray")]
         SocketTray
     }
 }

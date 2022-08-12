@@ -12,22 +12,5 @@ namespace JENDAMARK_code_assessment.Services
         {
             _context = context;
         }
-        public List<Device> GetDevices()
-        {
-            return _context.Devices.OrderBy(x => x.Name).ToList();
-        }
-        public bool InsertDevices(Device model)
-        {
-            try
-            {
-                _context.Devices.Add(model);
-                _context.SaveChanges();
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-            return true;
-        }
     }
 }

@@ -12,7 +12,6 @@ namespace JENDAMARK_code_assessment.Data
         [Range(1,9999999, ErrorMessage = "Enter a number")]
         [Display(Name="Operation Order")]
         public int OrderInWhichToPerform { get; set; }
-      
         public byte[] ImageData { get; set; }
         [Required(ErrorMessage ="Select a Device")]
         [Display(Name="Device")]
